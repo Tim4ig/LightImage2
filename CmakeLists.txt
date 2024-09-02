@@ -1,0 +1,14 @@
+
+cmake_minimum_required(VERSION 3.27)
+project(OpenImageFast CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+
+file(GLOB_RECURSE SRC_FILES "src/*.cpp")
+file(GLOB_RECURSE INC_FILES "src/*.hpp")
+
+include_directories("src")
+
+add_executable(${PROJECT_NAME} ${SRC_FILES} ${INC_FILES})
+target_link_libraries(${PROJECT_NAME})
