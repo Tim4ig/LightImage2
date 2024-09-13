@@ -3,7 +3,7 @@
 
 #include <memory>
 
-int wmain(int argc, const wchar_t ** argv) try
+int wmain(int argc, const wchar_t** argv) try
 {
 	if (FAILED(CoInitialize(nullptr))) THROW("CoInitialize error");
 
@@ -18,4 +18,9 @@ catch (const std::exception& e)
 	li2::logger.Log("EXCEPTION:", e.what());
 	MessageBoxA(nullptr, e.what(), "Error", MB_ICONERROR);
 	return 1;
+}
+
+int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	return wmain(__argc, const_cast<const wchar_t**>(__wargv));
 }

@@ -4,6 +4,7 @@
 #include <iostream>	
 #include <shellapi.h>
 #include <commdlg.h>
+#include <shlobj.h>
 
 #include "resource.hpp"
 
@@ -309,7 +310,6 @@ LRESULT __stdcall PrettyWindow::m_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 {
 	auto self = reinterpret_cast<PrettyWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
-	// common messages
 	switch (msg)
 	{
 	case WM_DESTROY:
@@ -330,7 +330,6 @@ LRESULT __stdcall PrettyWindow::m_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 
 	if (!self) return DefWindowProc(hwnd, msg, wParam, lParam);
 
-	// self messages
 	switch (msg)
 	{
 	case WM_SIZE:
@@ -346,34 +345,11 @@ LRESULT __stdcall PrettyWindow::m_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		pMinMaxInfo->ptMinTrackSize.y = self->m_minSize.y;
 		return 0;
 	}
-	case WM_DROPFILES:
-	{
-		auto hDrop = reinterpret_cast<HDROP>(wParam);
-		auto fileCount = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
-
-		auto argv = new wchar_t* [fileCount];
-
-		for (UINT i = 0; i < fileCount; i++)
-		{
-			argv[i] = new wchar_t[MAX_PATH];
-			DragQueryFileW(hDrop, i, argv[i], MAX_PATH);
-		}
-
-		WindowControllEx ex = {};
-		ex.argc = fileCount;
-		ex.argv = const_cast<const wchar_t**>(argv);
-		self->m_controllCallback(WindowControll::DROP, ex);
-
-		for (UINT i = 0; i < fileCount; i++) delete[] argv[i];
-		delete[] argv;
-		DragFinish(hDrop);
-	}
 	}
 
 	if (!self->m_controllCallback)
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 
-	// controll messages
 	switch (msg)
 	{
 	case WM_KEYDOWN:
@@ -413,7 +389,7 @@ LRESULT __stdcall PrettyWindow::m_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		if (wParam == 44)
 		{
 			OPENFILENAME ofn = {};
-			wchar_t szFile[1024]; 
+			wchar_t szFile[1024];
 
 			ZeroMemory(szFile, sizeof(szFile));
 
@@ -433,11 +409,15 @@ LRESULT __stdcall PrettyWindow::m_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			ofn.nFilterIndex = 1;
 			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_ALLOWMULTISELECT | OFN_EXPLORER;
 
+			WCHAR szDesktopPath[MAX_PATH];
+			if (SHGetFolderPathW(NULL, CSIDL_DESKTOP, NULL, 0, szDesktopPath) == S_OK)
+				ofn.lpstrInitialDir = szDesktopPath;
+
 			if (GetOpenFileName(&ofn) == TRUE)
 			{
 				szFile[1023] = L'\0';
-				std::vector<std::wstring> argvVector;  
-				std::wstring directory(szFile); 
+				std::vector<std::wstring> argvVector;
+				std::wstring directory(szFile);
 				wchar_t* file = ofn.lpstrFile + directory.length() + 1;
 
 				if (*file == '\0')
@@ -472,6 +452,29 @@ LRESULT __stdcall PrettyWindow::m_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 			return 0;
 		}
 		break;
+	}
+	case WM_DROPFILES:
+	{
+		auto hDrop = reinterpret_cast<HDROP>(wParam);
+		auto fileCount = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
+
+		auto argv = new wchar_t* [fileCount];
+
+		for (UINT i = 0; i < fileCount; i++)
+		{
+			argv[i] = new wchar_t[MAX_PATH];
+			DragQueryFileW(hDrop, i, argv[i], MAX_PATH);
+		}
+
+		WindowControllEx ex = {};
+		ex.argc = fileCount;
+		ex.argv = const_cast<const wchar_t**>(argv);
+		self->m_controllCallback(WindowControll::DROP, ex);
+
+		for (UINT i = 0; i < fileCount; i++) delete[] argv[i];
+		delete[] argv;
+		DragFinish(hDrop);
+		return 0;
 	}
 	}
 
