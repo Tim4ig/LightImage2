@@ -79,6 +79,9 @@ namespace li2
 		{
 			img.path = *argv++;
 		}
+		
+		m_scale = 1.0f;
+		m_offset = { 0.0f, 0.0f };
 		this->m_LoadImages();
 	}
 

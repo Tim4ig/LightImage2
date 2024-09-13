@@ -20,7 +20,7 @@ namespace li2
 		template <class ... T>
 		void Log(T ... args)
 		{
-			((m_file << args << ' '), ...) << '\n';
+			// ((m_file << args << ' '), ...) << '\n';
 			((std::cout << args << ' '), ...) << '\n';
 		}
 

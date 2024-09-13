@@ -2,6 +2,7 @@
 #include "li2app.hpp"
 
 #include <memory>
+#include <shellapi.h>
 
 int wmain(int argc, const wchar_t** argv) try
 {
@@ -20,7 +21,11 @@ catch (const std::exception& e)
 	return 1;
 }
 
-int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int __stdcall wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	return wmain(__argc, const_cast<const wchar_t**>(__wargv));
+	int argc = 0;
+	WCHAR** argv = CommandLineToArgvW(lpCmdLine, &argc);
+	int result = wmain(argc + 1, const_cast<const wchar_t**>(--argv));
+	LocalFree(argv);
+	return result;
 }

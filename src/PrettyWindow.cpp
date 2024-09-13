@@ -345,6 +345,14 @@ LRESULT __stdcall PrettyWindow::m_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LP
 		pMinMaxInfo->ptMinTrackSize.y = self->m_minSize.y;
 		return 0;
 	}
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			self->m_isRunning = false;
+			return 0;
+		}
+		break;
 	}
 
 	if (!self->m_controllCallback)
